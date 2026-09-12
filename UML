@@ -1,0 +1,204 @@
+@startuml CookHub_UML_Corregido
+
+' ============================================
+' BACKEND
+' ============================================
+package "backend" {
+
+  ' ---------- MODELO ----------
+  package "Modelo" {
+    class Receta {
+      - id: Integer
+      - nombre: String
+      - descripcion: String
+      - tiempo_preparacion: Integer
+      - dificultad: String
+      - porciones: Integer
+      - ingrediente_id: Integer
+      --
+      + save(): Boolean
+      + delete(): Boolean
+    }
+    
+    class Ingrediente {
+      - id: Integer
+      - nombre: String
+      - tipo: String
+      - unidad_medida: String
+      - disponible: Boolean
+      --
+      + save(): Boolean
+      + delete(): Boolean
+    }
+    
+    class db {
+      <<SQLAlchemy>>
+      + session
+      + Model
+    }
+    
+    Receta "N" --> "1" Ingrediente : ingrediente_principal
+  }
+
+  ' ---------- VISTA (Endpoints REST) ----------
+  package "Vista" {
+    class Resource {
+      <<framework>>
+    }
+    
+    class VistaRecetas {
+      + get(): List<Receta>
+      + post(): Receta
+    }
+    
+    class VistaReceta {
+      + get(id: Integer): Receta
+      + put(id: Integer): Receta
+      + delete(id: Integer): Boolean
+    }
+    
+    class VistaIngredientes {
+      + get(): List<Ingrediente>
+      + post(): Ingrediente
+    }
+    
+    class VistaIngrediente {
+      + get(id: Integer): Ingrediente
+      + put(id: Integer): Ingrediente
+      + delete(id: Integer): Boolean
+    }
+    
+    class VistaReporte {
+      + get(): ReportePopularidad
+    }
+    
+    Resource <|-- VistaRecetas
+    Resource <|-- VistaReceta
+    Resource <|-- VistaIngredientes
+    Resource <|-- VistaIngrediente
+    Resource <|-- VistaReporte
+  }
+
+  ' ---------- CONTROLADOR ----------
+  package "Controlador" {
+    class Flask {
+      <<framework>>
+      - config: Dict
+      + run(app, debug): void
+    }
+    
+    class Api {
+      <<framework>>
+      + add_resource(view, url): void
+    }
+  }
+
+  ' Relaciones Backend
+  VistaRecetas --> Receta : usa
+  VistaReceta --> Receta : usa
+  VistaIngredientes --> Ingrediente : usa
+  VistaIngrediente --> Ingrediente : usa
+  VistaReporte --> Receta : consulta
+  VistaReporte --> Ingrediente : consulta
+  Api --> VistaRecetas : registra
+  Api --> VistaReceta : registra
+  Api --> VistaIngredientes : registra
+  Api --> VistaIngrediente : registra
+  Api --> VistaReporte : registra
+}
+
+' ============================================
+' FRONTEND
+' ============================================
+package "frontend" {
+
+  package "Componentes" {
+    class AppComponent {
+      - vistaActual: String = "principal"
+      - recetaService: RecetaService
+      - ingredienteService: IngredienteService
+      --
+      + ngOnInit(): void
+      + mostrarVista(vista: String): void
+      + cargarRecetas(): void
+      + crearReceta(): void
+      + editarReceta(): void
+      + eliminarReceta(): void
+      + verDetalleReceta(): void
+      + cargarIngredientes(): void
+      + crearIngrediente(): void
+      + editarIngrediente(): void
+      + eliminarIngrediente(): void
+      + cargarReporte(): void
+    }
+  }
+
+  package "Servicios" {
+    class RecetaService {
+      - apiUrl: String
+      - http: HttpClient
+      --
+      + obtenerRecetas(): Observable<Receta[]>
+      + obtenerReceta(id: Integer): Observable<Receta>
+      + crearReceta(receta: Receta): Observable<Receta>
+      + actualizarReceta(id: Integer, receta: Receta): Observable<Receta>
+      + eliminarReceta(id: Integer): Observable<void>
+    }
+    
+    class IngredienteService {
+      - apiUrl: String
+      - http: HttpClient
+      --
+      + obtenerIngredientes(): Observable<Ingrediente[]>
+      + obtenerIngrediente(id: Integer): Observable<Ingrediente>
+      + crearIngrediente(ing: Ingrediente): Observable<Ingrediente>
+      + actualizarIngrediente(id: Integer, ing: Ingrediente): Observable<Ingrediente>
+      + eliminarIngrediente(id: Integer): Observable<void>
+    }
+  }
+
+  package "Modelos" {
+    interface Receta {
+      + id: Integer
+      + nombre: String
+      + descripcion: String
+      + tiempo_preparacion: Integer
+      + dificultad: String
+      + porciones: Integer
+      + ingrediente_id: Integer
+    }
+    
+    interface Ingrediente {
+      + id: Integer
+      + nombre: String
+      + tipo: String
+      + unidad_medida: String
+      + disponible: Boolean
+    }
+  }
+
+  package "Infraestructura" {
+    class HttpClient {
+      <<Angular>>
+    }
+    
+    class AppModule {
+      <<Angular>>
+    }
+  }
+
+  ' Relaciones Frontend
+  AppComponent --> RecetaService : usa
+  AppComponent --> IngredienteService : usa
+  RecetaService --> HttpClient : usa
+  IngredienteService --> HttpClient : usa
+  RecetaService ..> Receta : retorna
+  IngredienteService ..> Ingrediente : retorna
+}
+
+' ============================================
+' COMUNICACIÓN
+' ============================================
+HttpClient ..> Api : HTTP/REST
+
+@enduml
