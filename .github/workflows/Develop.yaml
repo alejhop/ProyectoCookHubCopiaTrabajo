@@ -3,7 +3,7 @@ name: Hacia rama develop
 on:
   push:
     branches:
-      - 'feature'
+      - 'feature/**'
 
 jobs:
   merge-feature-to-develop:
@@ -17,6 +17,7 @@ jobs:
       - name: Checkout de repositorio
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.ref_name }} 
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
       
