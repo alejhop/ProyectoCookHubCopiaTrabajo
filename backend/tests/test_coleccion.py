@@ -8,7 +8,7 @@ from faker import Faker
 os.environ.setdefault("COOKHUB_DATABASE_URL", "sqlite:///test_cookhub.db")
 
 from app import app
-from modelos import db, Receta, Ingrediente
+from modelo import db, Receta, Ingrediente
 from logica.coleccion import Coleccion
 from data.mock_data import ingredientes
 

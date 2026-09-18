@@ -25,7 +25,7 @@ class TestVistaRecetas(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
 
     def test_retorna_json_con_lista_vacia_cuando_no_hay_recetas(self):
-        with patch("vistas.vistas.recetas", []):
+        with patch("vista.vistas.recetas", []):
             resp = self.client.get(VISTA_RECETAS_URL)
             marcas = resp.json
             self.assertIsInstance(marcas, list)
