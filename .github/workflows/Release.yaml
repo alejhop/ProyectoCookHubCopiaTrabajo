@@ -30,7 +30,6 @@ jobs:
         run: |
           echo "Palabra clave 'release' detectada"
           echo "Mensaje del commit: ${{ github.event.head_commit.message }}"
-          echo "Rama actual: ${{ github.ref_name }}"
       
       - name: Crear rama release
         id: crear-release
@@ -40,7 +39,7 @@ jobs:
           echo "Creando rama $RELEASE_BRANCH desde develop"
           git checkout -b $RELEASE_BRANCH
           git push -u origin $RELEASE_BRANCH
-    
+      
       - name: Configuración de entorno de Python
         uses: actions/setup-python@v5
         with:
@@ -52,13 +51,11 @@ jobs:
           pip install -r backend/requirements.txt
       
       - name: Correr pruebas
-        id: correr-pruebas
         working-directory: ./backend
         run: |
           python -m unittest discover -s tests -p "test_vista.py" -v
       
       - name: Cálculo de cubrimiento
-        id: cubrimiento
         working-directory: ./backend
         run: |
           pip install coverage
@@ -70,7 +67,8 @@ jobs:
         run: |
           git checkout main
           git merge ${{ steps.crear-release.outputs.release_branch }} --no-ff -m "Merge ${{ steps.crear-release.outputs.release_branch }} en main"
-          git checkout main -- .github/workflows/ 2>/dev/null || true
+          git checkout origin/main -- .github/workflows/ 2>/dev/null || true
+          git commit --amend --no-edit --allow-empty 2>/dev/null || true         
           git push origin main
           echo "Release merge exitosamente a main"
       
