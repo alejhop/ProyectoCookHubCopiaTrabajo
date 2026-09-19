@@ -3,7 +3,7 @@ name: Hacia rama develop
 on:
   push:
     branches:
-      - 'feature/**'
+      - 'feature'
 
 jobs:
   merge-feature-to-develop:
