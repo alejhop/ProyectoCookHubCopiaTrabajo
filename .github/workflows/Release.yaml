@@ -1,0 +1,79 @@
+name: Hacia rama main
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  create-release-and-publish:
+    name: Crear release y publicar en main
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, 'release')
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout de repositorio
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Configurar Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Confirmar palabra clave detectada
+        run: |
+          echo "Palabra clave 'release' detectada"
+          echo "Mensaje del commit: ${{ github.event.head_commit.message }}"
+      
+      - name: Crear rama release
+        id: crear-release
+        run: |
+          RELEASE_BRANCH="release"
+          echo "release_branch=$RELEASE_BRANCH" >> $GITHUB_OUTPUT
+          echo "Creando rama $RELEASE_BRANCH desde develop"
+          git checkout -b $RELEASE_BRANCH
+          git push -u origin $RELEASE_BRANCH
+      
+      - name: Configuración de entorno de Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Instalación de librerías y dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+      
+      - name: Correr pruebas
+        working-directory: ./backend
+        run: |
+          python -m unittest discover -s tests -p "test_vista.py" -v
+      
+      - name: Cálculo de cubrimiento
+        working-directory: ./backend
+        run: |
+          pip install coverage
+          coverage run -m unittest discover -s tests -p "test_vista.py"
+          coverage report -m
+      
+      - name: Merge release a main
+        if: success()
+        run: |
+          git checkout main
+          git merge ${{ steps.crear-release.outputs.release_branch }} --no-ff -m "Merge ${{ steps.crear-release.outputs.release_branch }} en main"
+          git checkout origin/main -- .github/workflows/ 2>/dev/null || true
+          git commit --amend --no-edit --allow-empty 2>/dev/null || true         
+          git push origin main
+          echo "Release merge exitosamente a main"
+      
+      - name: Notificar fallo
+        if: failure()
+        run: |
+          echo "Falló el pipeline. No se hace merge a main."
+          exit 1
