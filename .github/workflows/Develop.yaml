@@ -68,7 +68,7 @@ jobs:
         if: success()
         run: |
           git checkout develop
-          git merge ${{ github.ref_name }} --no-ff -m "Merge ${{ github.ref_name }} into develop [skip ci]"
+          git merge ${{ github.ref_name }} --no-ff -m "Merge ${{ github.ref_name }} en develop"
           git push origin develop
           echo "Feature merge exitosamente a develop"
       
