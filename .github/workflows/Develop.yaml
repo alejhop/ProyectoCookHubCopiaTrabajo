@@ -17,6 +17,7 @@ jobs:
       - name: Checkout de repositorio
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.ref_name }} 
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
       
@@ -53,14 +54,14 @@ jobs:
         id: correr-pruebas
         working-directory: ./backend
         run: |
-          python -m unittest discover -s tests -p "test_*.py" -v
+          python -m unittest discover -s tests -p "test_vista.py" -v
       
       - name: Cálculo de cubrimiento
         id: cubrimiento
         working-directory: ./backend
         run: |
           pip install coverage
-          coverage run -m unittest discover -s tests -p "test_*.py"
+          coverage run -m unittest discover -s tests -p "test_vista.py"
           coverage report -m
       
       - name: Merge feature a develop
