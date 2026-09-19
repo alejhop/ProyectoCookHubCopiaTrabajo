@@ -70,6 +70,7 @@ jobs:
         run: |
           git checkout main
           git merge ${{ steps.crear-release.outputs.release_branch }} --no-ff -m "Merge ${{ steps.crear-release.outputs.release_branch }} en main"
+          git checkout main -- .github/workflows/ 2>/dev/null || true
           git push origin main
           echo "Release merge exitosamente a main"
       
